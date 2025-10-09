@@ -1,66 +1,50 @@
 const express = require('express');
 const cors = require('cors');
-const db = require('./db');
-
+const mysql = require('mysql');
+const bodyParser = require('body-parser');
 const app = express();
+const port = 3001;
+
+
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json());
 
-
-app.get('/api/vendegek', (req, res) => {
-    db.query('SELECT * FROM vendegek', (err, results) => {
-        if (err) return res.status(500).json({ error: err });
-        res.json(results);
-    });
+const dbPool = mysql.createPool({
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'fogado',
+  port: 3307,
 });
 
-app.get('/api/szobak', (req, res) => {
-    db.query('SELECT sznev, agyak_szama FROM szobak', (err, results) => {
-      if (err) return res.status(500).json({error: err});
-      res.json(results);
-    });
+app.get('/', (req, res) => {
+  res.send('Hello World!');
+});
+
+app.get("/hettorpe", (req, res) => { 
+    const sql = "SELECT szobak.sznev, szobak.agy FROM szobak";
+    dbPool.query(sql, (err, result) => {
+        if (err) return res.json(err);
+        return res.json(result);
+    })
   });
   
-  app.get('/api/kihasznaltsag', (req, res) => {
-    const sql = `
-      SELECT s.sznev, 
-             COUNT(DISTINCT v.vsorsz) AS vendegek, 
-             SUM(DATEDIFF(f.tavozas, f.erkezes)) AS vendegejszakak
-      FROM foglalas f
-        JOIN szobak s ON f.szazon = s.szazon
-        JOIN vendegek v ON f.vsorsz = v.vsorsz
-      GROUP BY s.sznev
-      ORDER BY vendegejszakak, vendegek
-    `;
-
-
-
-
-    app.get('/api/szoba/:id/foglaltsag', (req, res) => {
-        const szobaId = req.params.id;
-        const sql = `
-          SELECT v.vnev, f.erkezes, f.tavozas
-          FROM foglalas f
-            JOIN vendegek v ON f.vsorsz = v.vsorsz
-          WHERE f.szazon = ?
-          ORDER BY v.vnev
-        `;
-        db.query(sql, [szobaId], (err, results) => {
-          if (err) return res.status(500).json({error: err});
-          res.json(results);
-        });
-      });
-      
-
-    db.query(sql, (err, results) => {
-      if (err) return res.status(500).json({error: err});
-      res.json(results);
-    });
+  app.get("/kihasznaltsag", (req, res) => { 
+    const sql = "SELECT szobak.sznev, foglalasok.vendeg, DATEDIFF(foglalasok.tav, foglalasok.erk) AS vendegejszakak FROM szobak INNER JOIN foglalasok ON szobak.szazon = foglalasok.fsorsz ORDER BY szobak.sznev"; 
+    dbPool.query(sql, (err, result) => {
+        if (err) return res.json(err);
+        return res.json(result);
+    })
   });
   
+  app.get("/foglaltsag", (req, res) => { 
+    const sql = "SELECT vendegek.vnev, foglalasok.erk, foglalasok.tav FROM vendegek INNER JOIN foglalasok ON vendegek.vsorsz = foglalasok.fsorsz ORDER BY vendegek.vnev";
+    dbPool.query(sql, (err, result) => {
+        if (err) return res.json(err);
+        return res.json(result);
+    })
+  });
 
-  
-
-
-const PORT = 3001;
-app.listen(PORT, () => console.log(`Backend fut a ${PORT} porton`));
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+});
