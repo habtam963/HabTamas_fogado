@@ -28,6 +28,15 @@ app.get("/hettorpe", (req, res) => {
         return res.json(result);
     })
   });
+
+
+  app.get("/foglaltsag", (req, res) => { 
+    const sql = "SELECT vendegek.vnev, foglalasok.erk, foglalasok.tav FROM vendegek INNER JOIN foglalasok ON vendegek.vsorsz = foglalasok.fsorsz ORDER BY vendegek.vnev";
+    dbPool.query(sql, (err, result) => {
+        if (err) return res.json(err);
+        return res.json(result);
+    })
+  });
   
   app.get("/kihasznaltsag", (req, res) => { 
     const sql = "SELECT szobak.sznev, foglalasok.vendeg, DATEDIFF(foglalasok.tav, foglalasok.erk) AS vendegejszakak FROM szobak INNER JOIN foglalasok ON szobak.szazon = foglalasok.fsorsz ORDER BY szobak.sznev"; 
@@ -37,13 +46,7 @@ app.get("/hettorpe", (req, res) => {
     })
   });
   
-  app.get("/foglaltsag", (req, res) => { 
-    const sql = "SELECT vendegek.vnev, foglalasok.erk, foglalasok.tav FROM vendegek INNER JOIN foglalasok ON vendegek.vsorsz = foglalasok.fsorsz ORDER BY vendegek.vnev";
-    dbPool.query(sql, (err, result) => {
-        if (err) return res.json(err);
-        return res.json(result);
-    })
-  });
+  
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
