@@ -3,18 +3,17 @@ import axios from 'axios';
 import { Form, Button, Container, Row, Col } from 'react-bootstrap';
 
 function BookingForm() {
-  const [rooms, setRooms] = useState([]);          // Szobák listája a dropdownhoz
-  const [bookings, setBookings] = useState([]);    // Minden foglalási adat
+  const [rooms, setRooms] = useState([]);          
+  const [bookings, setBookings] = useState([]);    
   const [selectedRoom, setSelectedRoom] = useState('');
 
-  // Szobák betöltése (dropdown)
   useEffect(() => {
-    axios.get('http://localhost:3001/szobak')       // Feltételezve, hogy ez a szobák endpointja
+    axios.get('http://localhost:3001/szobak')      
       .then(response => setRooms(response.data))
       .catch(error => console.error(error));
   }, []);
 
-  // Foglalások betöltése
+  
   useEffect(() => {
     axios.get('http://localhost:3001/kihasznaltsag')
       .then(response => setBookings(response.data))
@@ -27,10 +26,10 @@ function BookingForm() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Nem muszáj semmit csinálni, mert szűrés realtime megy
+    
   };
 
-  // Szűrt adatok, csak a kiválasztott szoba
+  
   const filteredBookings = selectedRoom
     ? bookings.filter(booking => booking.sznev === selectedRoom)
     : [];
